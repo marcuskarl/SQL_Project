@@ -2,7 +2,10 @@ package cs4347.jdbcProject.ecomm.dao;
 
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import cs4347.jdbcProject.ecomm.entity.Customer;
@@ -24,18 +27,58 @@ public interface CustomerDAO
 	 * value set by the application's auto-increment primary key column. 
 	 * @throws DAOException if the given Customer has a non-null id.
 	 */
-	Customer create(Connection connection, Customer customer) throws SQLException, DAOException;
+	public Customer create(Connection connection, Customer customer) throws SQLException, DAOException {
+		
+	if (customer.getId() != null)
+		throw new DAOException("Trying to insert Customer with NON-NULL ID");
+	
+	PreparedStatement pstmt = null;
+	
+	try {
+		
+		String insertStmt = "INSERT INTO customers (firstName, lastName, gender, dob, email)"
+				+ " values (" + customer.getFirstName + ", " + customer.getLastName + ", " + customer.getGender
+				+ ", " + customer.getDob + ", " + customer.getEmail + ")";
+		
+		pstmt = connection.prepareStatement(insertStmt);
+		pstmt.executeUpdate();
+		
+		String getInsertedID = "SELECT SCOPE_IDENTITY()";
+		
+		pstmt = connection.prepareStatement(getInsertedID);
+		customer.setId = pstmt.executeQuery();
+		
+
+		// REQUIREMENT: Copy the auto-increment primary key to the customer ID.
+		ResultSet keyRS = pstmt.getGeneratedKeys();
+		keyRS.next();
+		int lastKey = keyRS.getInt(1);
+		customer.setId((long) lastKey);
+		
+		return customer;
+	}
+	finally {
+		if (pstmt != null && !ps.isClosed()) {
+			pstmt.close();
+		}
+		if (connection != null && !connection.isClosed()) {
+			connection.close();
+		}
+	}
+	}
 	
 	/**
 	 * The update method must throw DAOException if the provided 
 	 * ID is null. 
-	 */
-	Customer retrieve(Connection connection, Long id) throws SQLException, DAOException;
+	 */		
+	Customer retrieve(Connection connection, Long id) throws SQLException, DAOException {
 	
 	/**
 	 * The update method must throw DAOException if the provided 
-	 * Customer has a NULL id. 
+	 * Customer h
+	 * as a NULL id. 
 	 */
+	}
 	int update(Connection connection, Customer customer) throws SQLException, DAOException;
 	
 	/**
