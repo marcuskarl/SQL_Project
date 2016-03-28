@@ -2,9 +2,7 @@ package cs4347.jdbcProject.ecomm.services.impl;
 
 import java.sql.SQLException;
 import java.util.List;
-
 import javax.sql.DataSource;
-
 import cs4347.jdbcProject.ecomm.entity.Purchase;
 import cs4347.jdbcProject.ecomm.services.PurchasePersistenceService;
 import cs4347.jdbcProject.ecomm.services.PurchaseSummary;
