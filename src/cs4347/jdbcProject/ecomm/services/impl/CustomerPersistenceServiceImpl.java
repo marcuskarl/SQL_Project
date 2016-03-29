@@ -129,25 +129,87 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 
 	@Override
 	public int update(Customer customer) throws SQLException, DAOException {
-		// TODO Auto-generated method stub
+		
+		CustomerDAO customerDAO = new CustomerDaoImpl();
+		AddressDAO addressDAO = new AddressDaoImpl();
+		CreditCardDAO creditCardDAO = new CreditCardDaoImpl();
+		
+		Connection connection = dataSource.getConnection();
+		
+		// Updates customer details, address, and credit card information
+		try {
+			customerDAO.update(connection, customer);
+			addressDAO.create(connection, customer.getAddress(), customer.getId());
+			creditCardDAO.create(connection, customer.getCreditCard(), customer.getId());		
+		}
+		finally {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		}
 		return 0;
 	}
 
 	@Override
 	public int delete(Long id) throws SQLException, DAOException {
-		// TODO Auto-generated method stub
+		
+		CustomerDAO customerDAO = new CustomerDaoImpl();
+		Connection connection = dataSource.getConnection();
+		
+		try {
+			// Performs delete from customer and cascade deletes to credit card and address
+			customerDAO.delete(connection, id);
+		}
+		finally {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		}
+		
 		return 0;
 	}
 
 	@Override
 	public List<Customer> retrieveByZipCode(String zipCode) throws SQLException, DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		
+		CustomerDAO customerDAO = new CustomerDaoImpl();
+		Connection connection = dataSource.getConnection();
+		
+		List<Customer> customerList = null;
+		
+		try {
+			// Calls retrievebyZipCode method and sets customerList to the returns List
+			customerList = customerDAO.retrieveByZipCode(connection, zipCode);
+		}
+		finally {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		}
+		
+		// Returns list
+		return customerList;
 	}
 
 	@Override
 	public List<Customer> retrieveByDOB(Date startDate, Date endDate) throws SQLException, DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		
+		CustomerDAO customerDAO = new CustomerDaoImpl();
+		Connection connection = dataSource.getConnection();
+		
+		List<Customer> customerList = null;
+		
+		try {
+			// Calls retrievebyDOB method and sets customerList to the returns List
+			customerList = customerDAO.retrieveByDOB(connection, startDate, endDate);
+		}
+		finally {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		}
+		
+		// Returns list
+		return customerList;
 	}
 }

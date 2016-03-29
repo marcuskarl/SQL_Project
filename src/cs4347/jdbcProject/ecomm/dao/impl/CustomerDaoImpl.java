@@ -8,13 +8,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import cs4347.jdbcProject.ecomm.dao.AddressDAO;
+import cs4347.jdbcProject.ecomm.dao.CreditCardDAO;
 import cs4347.jdbcProject.ecomm.dao.CustomerDAO;
 import cs4347.jdbcProject.ecomm.entity.Customer;
 import cs4347.jdbcProject.ecomm.util.DAOException;
 
 public class CustomerDaoImpl implements CustomerDAO
 {
-
 	@Override
 	public Customer create(Connection connection, Customer customer) throws SQLException, DAOException {
 		
@@ -27,7 +28,7 @@ public class CustomerDaoImpl implements CustomerDAO
 					
 		// Creates string for inserting into prepared statement
 		String insertStmt = "INSERT INTO customers (firstName, lastName, gender, dob, email)"
-				+ " values (" + customer.getFirstName() + ", " + customer.getLastName() + ", " + customer.getGender()
+				+ " VALUES (" + customer.getFirstName() + ", " + customer.getLastName() + ", " + customer.getGender()
 				+ ", " + customer.getDob() + ", " + customer.getEmail() + ")";
 		
 		// Sends prepared statement object to the PreparedStatement variable, with the string inserted
@@ -46,8 +47,11 @@ public class CustomerDaoImpl implements CustomerDAO
 		ResultSet rs = pstmt.executeQuery();
 		
 		// Checks for a non null return in the result set
-		if (rs.next())
+		if ( rs.next() ) {			
+			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+			
 			customer.setId( rs.getLong("id") ); // Sets the customer ID to what was created in the database
+		}
 			
 		// Returns the customer with the updated id
 		return customer;
@@ -56,7 +60,7 @@ public class CustomerDaoImpl implements CustomerDAO
 	@Override
 	public Customer retrieve(Connection connection, Long id) throws SQLException, DAOException {
 		
-		Customer customer = new Customer();
+		Customer customer = null;
 		
 		if (id < 1)
 			throw new DAOException("Trying to retrieve customer with invalid ID.");
@@ -71,19 +75,25 @@ public class CustomerDaoImpl implements CustomerDAO
 		pstmt = connection.prepareStatement( retrieveStmt );
 		
 		// Executes the query
-		ResultSet rs = null;
-		rs = pstmt.executeQuery();
+		ResultSet rs = pstmt.executeQuery();
 		
 		// Checks for a non null return in the result set
 		if ( rs.next() ) {
+			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+			
+			// Initializes customer variable
+			customer = new Customer();
+			
+			// Loads ResultSet returns to customer fields
 			customer.setId( rs.getLong("id") );
-			customer.setFirstName( rs.getString( "firstName" ));
-			customer.setLastName( rs.getString( "lastName" ));
-			customer.setGender( rs.getString( "gender" ).charAt(0) );
-			customer.setDob( rs.getDate( "dob" ));
-			customer.setEmail( rs.getString( "email" ));
+			customer.setFirstName( rs.getString("firstName") );
+			customer.setLastName( rs.getString("lastName") );
+			customer.setGender( rs.getString("gender").charAt(0) );
+			customer.setDob( rs.getDate("dob") );
+			customer.setEmail( rs.getString("email") );
 		}
 		
+		// Returns customer information
 		return customer;
 	}
 
@@ -100,12 +110,13 @@ public class CustomerDaoImpl implements CustomerDAO
 		// Creates string for updating with prepared statement
 		String updateStmt = "UPDATE customer SET "
 				+ "firstName = " + customer.getFirstName()
-				+ "lastName = " + customer.getLastName()
-				+ "gender = " + customer.getGender()
-				+ "dob = " + customer.getDob()
-				+ "email = " + customer.getEmail()
-				+ "WHERE id = " + customer.getId();
+				+ ", lastName = " + customer.getLastName()
+				+ ", gender = " + customer.getGender()
+				+ ", dob = " + customer.getDob()
+				+ ", email = " + customer.getEmail()
+				+ " WHERE id = " + customer.getId();
 		
+		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( updateStmt );
 		pstmt.executeUpdate();		
 		
@@ -141,23 +152,34 @@ public class CustomerDaoImpl implements CustomerDAO
 		// Creates PreparedStatement variable
 		PreparedStatement pstmt = null;
 		
+		// Creates string for searching table
 		String zipCodeSearch = "SELECT * FROM address WHERE zipcode = " + zipCode;
 		
+		// Loads string to PreparedStatement
 		pstmt = connection.prepareStatement( zipCodeSearch );
 		
-		ResultSet rs = null;
+		// Performs query and sends data to ResultSet variable
+		ResultSet rs = pstmt.executeQuery();
 		
-		rs = pstmt.executeQuery();
+		// Creates a List for returning search results
 		List<Customer> customerList = null;
 		
-		if (rs != null) {
+		// Checks if results were found
+		if ( rs.next() ) {			
+			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 			
+			// If results were found, customerList is initializes (otherwise null is returned)
 			customerList = new ArrayList<Customer>();
+			
+			AddressDAO addressDAO = new AddressDaoImpl();
+			CreditCardDAO creditCardDAO = new CreditCardDaoImpl();
 			
 			do
 			{
+				// Creates new Customer object for adding to List array
 				Customer customer = new Customer();
-			
+				
+				// Updates values of customer from Result Set
 				customer.setId( rs.getLong("id") );
 				customer.setFirstName( rs.getString("firstName") );
 				customer.setLastName( rs.getString("lastName") );
@@ -165,18 +187,72 @@ public class CustomerDaoImpl implements CustomerDAO
 				customer.setDob( rs.getDate("dob") );
 				customer.setEmail( rs.getString("email") );
 				
+				customer.setAddress( addressDAO.retrieveForCustomerID(connection, customer.getId()) );
+				customer.setCreditCard( creditCardDAO.retrieveForCustomerID(connection, customer.getId()) );
+				
+				// Adds customer to List
 				customerList.add(customer);			
-			} while ( rs.next() );
+			} while ( rs.next() ); // Loops until all results are added to list
 		}
 		
+		// Returns generated List
 		return customerList;
 	}
 
 	@Override
 	public List<Customer> retrieveByDOB(Connection connection, Date startDate, Date endDate)
 			throws SQLException, DAOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
+		
+		// Creates PreparedStatement variable
+		PreparedStatement pstmt = null;
+		
+		// Creates string for use in PreparedStatement
+		String searchByDOB = "SELECT * FROM customer WHERE"
+				+ " dob >= " + startDate + " AND"
+				+ " dob <= " + endDate;
+		
+		// Loads string to PreparedStatement
+		pstmt = connection.prepareStatement( searchByDOB );
+		
+		// Performs query and sends data to ResultSet variable
+		ResultSet rs = pstmt.executeQuery();
+		
+		// Creates a List for returning search results
+		List<Customer> customerList = null;
+		
+		// Checks if results were found
+		if ( rs.next() ) {
+			
+			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+			
+			// If results were found, customerList is initializes (otherwise null is returned)
+			customerList = new ArrayList<Customer>();
+			
+			AddressDAO addressDAO = new AddressDaoImpl();
+			CreditCardDAO creditCardDAO = new CreditCardDaoImpl();
+			
+			do
+			{
+				// Creates new Customer object for adding to List array
+				Customer customer = new Customer();
+			
+				// Updates values of customer from Result Set
+				customer.setId( rs.getLong("id") );
+				customer.setFirstName( rs.getString("firstName") );
+				customer.setLastName( rs.getString("lastName") );
+				customer.setGender( rs.getString("gender").charAt(0) );
+				customer.setDob( rs.getDate("dob") );
+				customer.setEmail( rs.getString("email") );
+				
+				customer.setAddress( addressDAO.retrieveForCustomerID(connection, customer.getId()) );
+				customer.setCreditCard( creditCardDAO.retrieveForCustomerID(connection, customer.getId()) );
+				
+				// Adds customer to List
+				customerList.add(customer);			
+			} while ( rs.next() ); // Loops until all results are added to list
+		}
+		
+		// Returns generated List
+		return customerList;
+	}	
 }
