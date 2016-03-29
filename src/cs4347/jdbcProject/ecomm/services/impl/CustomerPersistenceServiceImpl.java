@@ -33,7 +33,7 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 	 * 
 	 * Persists a new Customer instance by inserting new Customer, Address, 
 	 * and CreditCard instances. Notice the transactional nature of this 
-	 * method which inludes turning off autocommit at the start of the 
+	 * method which includes turning off autocommit at the start of the 
 	 * process, and rolling back the transaction if an exception 
 	 * is caught. 
 	 */
@@ -81,8 +81,50 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 
 	@Override
 	public Customer retrieve(Long id) throws SQLException, DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		
+		CustomerDAO customerDAO = new CustomerDaoImpl();
+		AddressDAO addressDAO = new AddressDaoImpl();
+		CreditCardDAO creditCardDAO = new CreditCardDaoImpl();
+
+		Connection connection = dataSource.getConnection();
+		
+		try {
+			// Retrieves customer information and assigns to Customer variable
+			Customer cust = null;
+			cust = customerDAO.retrieve(connection, id);
+			
+			if (cust == null) // Throws error message if id does not exist
+				throw new DAOException("Customer not found.");
+			
+			// Retrieves address information and assigns to Address variable
+			Address address = null;
+			address = addressDAO.retrieveForCustomerID(connection, id);
+			
+			if (address == null) // Throws error message if id does not exist
+				throw new DAOException("Customers address not found.");
+			else // Else assigns address information to customer information
+				cust.setAddress(address);
+			
+			// Retrieves credit card information and assigns to CreditCard variable
+			CreditCard creditCard = null;
+			creditCard = creditCardDAO.retrieveForCustomerID(connection, id);
+			
+			if (creditCard == null) // Throws error message if id is not found
+				throw new DAOException("Customers creditcard not found.");
+			else // Else assigns credit card information to customer information
+				cust.setCreditCard(creditCard);
+			
+			return cust; // Returns collected information
+			
+		}
+		catch (Exception ex) {
+			throw ex;
+		}
+		finally {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		}
 	}
 
 	@Override
