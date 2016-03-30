@@ -138,15 +138,27 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 		
 		// Updates customer details, address, and credit card information
 		try {
+			connection.setAutoCommit(false);
+			
 			customerDAO.update(connection, customer);
 			addressDAO.create(connection, customer.getAddress(), customer.getId());
-			creditCardDAO.create(connection, customer.getCreditCard(), customer.getId());		
+			creditCardDAO.create(connection, customer.getCreditCard(), customer.getId());
+			
+			connection.commit();
+		}
+		catch (Exception ex) {
+			connection.rollback();
+			throw ex;
 		}
 		finally {
+			if (connection != null) {
+				connection.setAutoCommit(true);
+			}
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			}
 		}
+		
 		return 0;
 	}
 
@@ -157,10 +169,21 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 		Connection connection = dataSource.getConnection();
 		
 		try {
+			connection.setAutoCommit(false);
+			
 			// Performs delete from customer and cascade deletes to credit card and address
 			customerDAO.delete(connection, id);
+			
+			connection.commit();
+		}
+		catch (Exception ex) {
+			connection.rollback();
+			throw ex;
 		}
 		finally {
+			if (connection != null) {
+				connection.setAutoCommit(true);
+			}
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			}

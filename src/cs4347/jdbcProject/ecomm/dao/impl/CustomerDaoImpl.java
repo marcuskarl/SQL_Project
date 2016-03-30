@@ -27,7 +27,7 @@ public class CustomerDaoImpl implements CustomerDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for inserting into prepared statement
-		String insertStmt = "INSERT INTO customers (firstName, lastName, gender, dob, email)"
+		String insertStmt = "INSERT INTO customer (firstName, lastName, gender, dob, email)"
 				+ " VALUES (" + customer.getFirstName() + ", " + customer.getLastName() + ", " + customer.getGender()
 				+ ", " + customer.getDob() + ", " + customer.getEmail() + ")";
 		
@@ -62,14 +62,11 @@ public class CustomerDaoImpl implements CustomerDAO
 		
 		Customer customer = null;
 		
-		if (id < 1)
-			throw new DAOException("Trying to retrieve customer with invalid ID.");
-		
 		// Creates PreparedStatement variable
 		PreparedStatement pstmt = null;
 					
 		// Creates string for returning row that matches id
-		String retrieveStmt = "SELECT * FROM customers WHERE id = " + id;
+		String retrieveStmt = "SELECT * FROM customer WHERE id = " + id;
 		
 		// Places string to PreparedStatement variable as object
 		pstmt = connection.prepareStatement( retrieveStmt );
@@ -100,7 +97,7 @@ public class CustomerDaoImpl implements CustomerDAO
 	@Override
 	public int update(Connection connection, Customer customer) throws SQLException, DAOException {
 
-		// Checks that customer ID is null, throws exception is a value is found
+		// Checks that customer ID is positive number, throws exception is a value is found
 		if (customer.getId() < 1)
 			throw new DAOException("Trying to update Customer with invalid ID.");
 		
@@ -126,7 +123,7 @@ public class CustomerDaoImpl implements CustomerDAO
 	@Override
 	public int delete(Connection connection, Long id) throws SQLException, DAOException {
 		
-		// Checks that customer ID is null, throws exception is a value is found
+		// Checks that customer ID is positive number, throws exception is a value is found
 		if (id < 1)
 			throw new DAOException("Trying to delete Customer with invalid ID.");
 		
@@ -168,7 +165,7 @@ public class CustomerDaoImpl implements CustomerDAO
 		if ( rs.next() ) {			
 			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 			
-			// If results were found, customerList is initializes (otherwise null is returned)
+			// If results were found, customerList is initialized (otherwise null is returned)
 			customerList = new ArrayList<Customer>();
 			
 			AddressDAO addressDAO = new AddressDaoImpl();
