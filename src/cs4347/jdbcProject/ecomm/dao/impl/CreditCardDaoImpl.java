@@ -22,14 +22,21 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		
 		// Creates string for updating with prepared statement
 		String updateStmt = "UPDATE customer SET"
-				+ " name = " + creditCard.getName()
-				+ ", ccNumber = " + creditCard.getCcNumber()
-				+ ", expDate = " + creditCard.getExpDate()
-				+ ", securityCode = " + creditCard.getSecurityCode()
-				+ " WHERE customerID = " + customerID;
+				+ " name = ?"
+				+ ", ccNumber = ?"
+				+ ", expDate = ?"
+				+ ", securityCode = ?"
+				+ " WHERE customerID = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( updateStmt );
+		
+		pstmt.setString(1, creditCard.getName() );
+		pstmt.setString(2, creditCard.getCcNumber() );
+		pstmt.setString(3, creditCard.getExpDate() );
+		pstmt.setString(4, creditCard.getSecurityCode() );
+		pstmt.setLong(5, customerID );
+				
 		pstmt.executeUpdate();
 		
 		return null;
@@ -42,11 +49,13 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for returning row that matches id
-		String retrieveCC = "SELECT * FROM creditCard WHERE customerID = " + customerID;
+		String retrieveCC = "SELECT * FROM creditCard WHERE customerID = ?";
 		
 		// Places string to PreparedStatement variable as object
 		pstmt = connection.prepareStatement( retrieveCC );
 		
+		pstmt.setLong(1, customerID );
+				
 		// Executes the query
 		ResultSet rs = pstmt.executeQuery();
 		
@@ -80,10 +89,13 @@ public class CreditCardDaoImpl implements CreditCardDAO
 				+ ", ccNumber = null"
 				+ ", expDate = null"
 				+ ", securityCode = null"
-				+ " WHERE customerID = " + customerID;
+				+ " WHERE customerID = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( updateStmt );
+		
+		pstmt.setLong(1, customerID );
+		
 		pstmt.executeUpdate();		
 	}
 

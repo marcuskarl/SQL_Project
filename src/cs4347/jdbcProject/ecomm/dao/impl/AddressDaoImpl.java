@@ -20,15 +20,23 @@ public class AddressDaoImpl implements AddressDAO
 		
 		// Creates string for updating with prepared statement
 		String updateStmt = "UPDATE customer SET"
-				+ " address1 = " + address.getAddress1()
-				+ ", address2 = " + address.getAddress2()
-				+ ", city = " + address.getCity()
-				+ ", state = " + address.getState()
-				+ ", zipcode = " + address.getZipcode()
-				+ " WHERE customerID = " + customerID;
+				+ " address1 = ?"
+				+ ", address2 = ?"
+				+ ", city = ?"
+				+ ", state = ?"
+				+ ", zipcode = ?"
+				+ " WHERE customerID = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( updateStmt );
+		
+		pstmt.setString(1, address.getAddress1() );
+		pstmt.setString(2, address.getAddress2() );
+		pstmt.setString(3, address.getCity() );
+		pstmt.setString(4, address.getState() );
+		pstmt.setString(5, address.getZipcode() );
+		pstmt.setLong(6, customerID );
+				
 		pstmt.executeUpdate();	
 		
 		return null;
@@ -41,10 +49,12 @@ public class AddressDaoImpl implements AddressDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for returning row that matches id
-		String retrieveAddress = "SELECT * FROM address WHERE customerID = " + customerID;
+		String retrieveAddress = "SELECT * FROM address WHERE customerID = ?";
 		
 		// Places string to PreparedStatement variable as object
 		pstmt = connection.prepareStatement( retrieveAddress );
+		
+		pstmt.setLong(1, customerID );
 		
 		// Executes the query
 		ResultSet rs = pstmt.executeQuery();
@@ -80,10 +90,13 @@ public class AddressDaoImpl implements AddressDAO
 				+ ", city = null"
 				+ ", state = null"
 				+ ", zipcode = null"
-				+ " WHERE customerID = " + customerID;
+				+ " WHERE customerID = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( updateStmt );
+		
+		pstmt.setLong(1, customerID );
+		
 		pstmt.executeUpdate();		
 	}
 }

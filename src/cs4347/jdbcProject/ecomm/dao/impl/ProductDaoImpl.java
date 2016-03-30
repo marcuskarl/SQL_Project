@@ -18,20 +18,22 @@ public class ProductDaoImpl implements ProductDAO
 		
 		// Checks that customer ID is null, throws exception is a value is found
 		if (product.getId() != null)
-			throw new DAOException("Trying to insert Product with NON-NULL ID");
+			throw new DAOException("Trying to insert Product with NON-NULL ID.");
 		
 		// Creates PreparedStatement variable
 		PreparedStatement pstmt = null;
 					
 		// Creates string for inserting into prepared statement
 		String insertStmt = "INSERT INTO product (prodName, prodDescription, prodCategory, prodUPC)"
-				+ " VALUES (" + product.getProdName() 
-				+ ", " + product.getProdDescription()
-				+ ", " + product.getProdCategory()
-				+ ", " + product.getProdUPC() + ")";
+				+ " VALUES (?, ?, ?, ?)";
 		
 		// Sends prepared statement object to the PreparedStatement variable, with the string inserted
 		pstmt = connection.prepareStatement( insertStmt );
+		
+		pstmt.setString(1, product.getProdName() );
+		pstmt.setString(2, product.getProdDescription() );
+		pstmt.setInt(3, product.getProdCategory() );
+		pstmt.setString(4, product.getProdUPC() );
 		
 		// Performs the insert command
 		pstmt.executeUpdate();
@@ -54,7 +56,6 @@ public class ProductDaoImpl implements ProductDAO
 			
 		// Returns the product with the updated id
 		return product;
-
 	}
 
 	@Override
@@ -66,10 +67,12 @@ public class ProductDaoImpl implements ProductDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for returning row that matches id
-		String retrieveStmt = "SELECT * FROM product WHERE id = " + id;
+		String retrieveStmt = "SELECT * FROM product WHERE id = ?";
 		
 		// Places string to PreparedStatement variable as object
 		pstmt = connection.prepareStatement( retrieveStmt );
+		
+		pstmt.setLong(1, id );
 		
 		// Executes the query
 		ResultSet rs = pstmt.executeQuery();
@@ -85,7 +88,7 @@ public class ProductDaoImpl implements ProductDAO
 			product.setId( rs.getLong("id") );
 			product.setProdName( rs.getString("prodName") );
 			product.setProdDescription( rs.getString("prodDescription") );
-			product.setProdCategory( rs.getShort("prodCategory") );
+			product.setProdCategory( rs.getInt("prodCategory") );
 			product.setProdUPC( rs.getString("prodUPC") );			
 		}
 		
@@ -105,14 +108,21 @@ public class ProductDaoImpl implements ProductDAO
 					
 		// Creates string for updating with prepared statement
 		String updateStmt = "UPDATE customer SET "
-				+ "prodName = " + product.getProdName()
-				+ ", prodDescription = " + product.getProdDescription()
-				+ ", prodCategory = " + product.getProdCategory()
-				+ ", prodUPC = " + product.getProdUPC()
-				+ " WHERE id = " + product.getId();
+				+ "prodName = ?"
+				+ ", prodDescription = ?"
+				+ ", prodCategory = ?"
+				+ ", prodUPC = ?"
+				+ " WHERE id = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( updateStmt );
+		
+		pstmt.setString(1, product.getProdName() );
+		pstmt.setString(2, product.getProdDescription() );
+		pstmt.setInt(3, product.getProdCategory() );
+		pstmt.setString(4, product.getProdUPC() );
+		pstmt.setLong(5, product.getId() );
+		
 		pstmt.executeUpdate();				
 		
 		return 0;
@@ -129,10 +139,13 @@ public class ProductDaoImpl implements ProductDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for updating with prepared statement
-		String deleteStmt = "DELETE FROM product WHERE id = " + id;
+		String deleteStmt = "DELETE FROM product WHERE id = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( deleteStmt );
+		
+		pstmt.setLong(1, id );
+		
 		pstmt.executeUpdate();
 		
 		return 0;
@@ -145,10 +158,12 @@ public class ProductDaoImpl implements ProductDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for searching table
-		String categorySearch = "SELECT * FROM product WHERE prodCategory = " + category;
+		String categorySearch = "SELECT * FROM product WHERE prodCategory = ?";
 		
 		// Loads string to PreparedStatement
 		pstmt = connection.prepareStatement( categorySearch );
+		
+		pstmt.setInt(1, category );
 		
 		// Performs query and sends data to ResultSet variable
 		ResultSet rs = pstmt.executeQuery();
@@ -172,7 +187,7 @@ public class ProductDaoImpl implements ProductDAO
 				product.setId( rs.getLong("id") );
 				product.setProdName( rs.getString("prodName") );
 				product.setProdDescription( rs.getString("prodDescription") );
-				product.setProdCategory( rs.getShort("prodCategory") );
+				product.setProdCategory( rs.getInt("prodCategory") );
 				product.setProdUPC( rs.getString("prodUPC") );	
 				
 				// Adds customer to List
@@ -191,10 +206,12 @@ public class ProductDaoImpl implements ProductDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for searching table
-		String categorySearch = "SELECT * FROM product WHERE prodUPC = " + upc;
+		String categorySearch = "SELECT * FROM product WHERE prodUPC = ?";
 		
 		// Loads string to PreparedStatement
 		pstmt = connection.prepareStatement( categorySearch );
+		
+		pstmt.setString(1, upc );
 		
 		// Performs query and sends data to ResultSet variable
 		ResultSet rs = pstmt.executeQuery();
@@ -213,7 +230,7 @@ public class ProductDaoImpl implements ProductDAO
 			product.setId( rs.getLong("id") );
 			product.setProdName( rs.getString("prodName") );
 			product.setProdDescription( rs.getString("prodDescription") );
-			product.setProdCategory( rs.getShort("prodCategory") );
+			product.setProdCategory( rs.getInt("prodCategory") );
 			product.setProdUPC( rs.getString("prodUPC") );	
 		}
 		
