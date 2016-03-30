@@ -11,6 +11,8 @@ import java.util.List;
 import cs4347.jdbcProject.ecomm.dao.AddressDAO;
 import cs4347.jdbcProject.ecomm.dao.CreditCardDAO;
 import cs4347.jdbcProject.ecomm.dao.CustomerDAO;
+import cs4347.jdbcProject.ecomm.entity.Address;
+import cs4347.jdbcProject.ecomm.entity.CreditCard;
 import cs4347.jdbcProject.ecomm.entity.Customer;
 import cs4347.jdbcProject.ecomm.util.DAOException;
 
@@ -28,12 +30,17 @@ public class CustomerDaoImpl implements CustomerDAO
 					
 		// Creates string for inserting into prepared statement
 		String insertStmt = "INSERT INTO customer (firstName, lastName, gender, dob, email)"
-				+ " VALUES (" + customer.getFirstName() + ", " + customer.getLastName() + ", " + customer.getGender()
-				+ ", " + customer.getDob() + ", " + customer.getEmail() + ")";
+				+ " VALUES (?, ? ?, ?, ?)";
 		
 		// Sends prepared statement object to the PreparedStatement variable, with the string inserted
 		pstmt = connection.prepareStatement( insertStmt );
 		
+		pstmt.setString(1, customer.getFirstName() );
+		pstmt.setString(2, customer.getLastName() );
+		pstmt.setString(3, customer.getGender().toString() );
+		pstmt.setDate(4, customer.getDob() );
+		pstmt.setString(5, customer.getEmail() );
+				
 		// Performs the insert command
 		pstmt.executeUpdate();
 		
@@ -66,10 +73,12 @@ public class CustomerDaoImpl implements CustomerDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for returning row that matches id
-		String retrieveStmt = "SELECT * FROM customer WHERE id = " + id;
+		String retrieveStmt = "SELECT * FROM customer WHERE id = ?";
 		
 		// Places string to PreparedStatement variable as object
 		pstmt = connection.prepareStatement( retrieveStmt );
+		
+		pstmt.setLong(1, id);
 		
 		// Executes the query
 		ResultSet rs = pstmt.executeQuery();
@@ -105,16 +114,24 @@ public class CustomerDaoImpl implements CustomerDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for updating with prepared statement
-		String updateStmt = "UPDATE customer SET "
-				+ "firstName = " + customer.getFirstName()
-				+ ", lastName = " + customer.getLastName()
-				+ ", gender = " + customer.getGender()
-				+ ", dob = " + customer.getDob()
-				+ ", email = " + customer.getEmail()
-				+ " WHERE id = " + customer.getId();
+		String updateStmt = "UPDATE customer SET"
+				+ " firstName = ?"
+				+ ", lastName = ?"
+				+ ", gender = ?"
+				+ ", dob = ?"
+				+ ", email = ?"
+				+ " WHERE id = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( updateStmt );
+		
+		pstmt.setString(1, customer.getFirstName() );
+		pstmt.setString(2, customer.getLastName() );
+		pstmt.setString(3, customer.getGender().toString() );
+		pstmt.setDate(4, customer.getDob() );
+		pstmt.setString(5, customer.getEmail() );
+		pstmt.setLong(6, customer.getId() );
+		
 		pstmt.executeUpdate();		
 		
 		return 0;
@@ -131,10 +148,13 @@ public class CustomerDaoImpl implements CustomerDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for updating with prepared statement
-		String deleteStmt = "DELETE FROM customer WHERE id = " + id;
+		String deleteStmt = "DELETE FROM customer WHERE id = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( deleteStmt );
+		
+		pstmt.setLong(1, id);
+		
 		pstmt.executeUpdate();		
 		
 		return 0;
@@ -150,10 +170,15 @@ public class CustomerDaoImpl implements CustomerDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for searching table
-		String zipCodeSearch = "SELECT * FROM address WHERE zipcode = " + zipCode;
+		String zipCodeSearch = "SELECT * FROM customer, creditCard, address "
+				+ "WHERE customer.id = address.customerID " 
+				+ "AND address.customerID = creditCard.customerID " 
+				+ "AND address.zipcode = ?";
 		
 		// Loads string to PreparedStatement
 		pstmt = connection.prepareStatement( zipCodeSearch );
+		
+		pstmt.setString(1, zipCode);
 		
 		// Performs query and sends data to ResultSet variable
 		ResultSet rs = pstmt.executeQuery();
@@ -167,14 +192,13 @@ public class CustomerDaoImpl implements CustomerDAO
 			
 			// If results were found, customerList is initialized (otherwise null is returned)
 			customerList = new ArrayList<Customer>();
-			
-			AddressDAO addressDAO = new AddressDaoImpl();
-			CreditCardDAO creditCardDAO = new CreditCardDaoImpl();
-			
+						
 			do
 			{
 				// Creates new Customer object for adding to List array
 				Customer customer = new Customer();
+				Address address = new Address();
+				CreditCard creditCard = new CreditCard();
 				
 				// Updates values of customer from Result Set
 				customer.setId( rs.getLong("id") );
@@ -184,8 +208,20 @@ public class CustomerDaoImpl implements CustomerDAO
 				customer.setDob( rs.getDate("dob") );
 				customer.setEmail( rs.getString("email") );
 				
-				customer.setAddress( addressDAO.retrieveForCustomerID(connection, customer.getId()) );
-				customer.setCreditCard( creditCardDAO.retrieveForCustomerID(connection, customer.getId()) );
+				address.setAddress1( rs.getString("address1") );
+				address.setAddress2( rs.getString("address2") );
+				address.setCity( rs.getString("city") );
+				address.setState( rs.getString("state") );
+				address.setZipcode( rs.getString("zipcode") );
+				
+				customer.setAddress( address );
+				
+				creditCard.setName( rs.getString("name") );
+				creditCard.setCcNumber( rs.getString("ccNumber") );
+				creditCard.setExpDate( rs.getString("expDate") );
+				creditCard.setSecurityCode( rs.getString("securityCode") );
+				
+				customer.setCreditCard( creditCard );
 				
 				// Adds customer to List
 				customerList.add(customer);			
@@ -204,12 +240,15 @@ public class CustomerDaoImpl implements CustomerDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for use in PreparedStatement
-		String searchByDOB = "SELECT * FROM customer WHERE"
-				+ " dob >= " + startDate + " AND"
-				+ " dob <= " + endDate;
+		String searchByDOB = "SELECT * FROM customer "
+				+ "WHERE dob >= ? "
+				+ "AND dob <= ?";
 		
 		// Loads string to PreparedStatement
 		pstmt = connection.prepareStatement( searchByDOB );
+		
+		pstmt.setDate(1, startDate);
+		pstmt.setDate(2, endDate);		
 		
 		// Performs query and sends data to ResultSet variable
 		ResultSet rs = pstmt.executeQuery();
@@ -224,15 +263,14 @@ public class CustomerDaoImpl implements CustomerDAO
 			
 			// If results were found, customerList is initializes (otherwise null is returned)
 			customerList = new ArrayList<Customer>();
-			
-			AddressDAO addressDAO = new AddressDaoImpl();
-			CreditCardDAO creditCardDAO = new CreditCardDaoImpl();
-			
+						
 			do
 			{
 				// Creates new Customer object for adding to List array
 				Customer customer = new Customer();
-			
+				Address address = new Address();
+				CreditCard creditCard = new CreditCard();
+				
 				// Updates values of customer from Result Set
 				customer.setId( rs.getLong("id") );
 				customer.setFirstName( rs.getString("firstName") );
@@ -241,8 +279,20 @@ public class CustomerDaoImpl implements CustomerDAO
 				customer.setDob( rs.getDate("dob") );
 				customer.setEmail( rs.getString("email") );
 				
-				customer.setAddress( addressDAO.retrieveForCustomerID(connection, customer.getId()) );
-				customer.setCreditCard( creditCardDAO.retrieveForCustomerID(connection, customer.getId()) );
+				address.setAddress1( rs.getString("address1") );
+				address.setAddress2( rs.getString("address2") );
+				address.setCity( rs.getString("city") );
+				address.setState( rs.getString("state") );
+				address.setZipcode( rs.getString("zipcode") );
+				
+				customer.setAddress( address );
+				
+				creditCard.setName( rs.getString("name") );
+				creditCard.setCcNumber( rs.getString("ccNumber") );
+				creditCard.setExpDate( rs.getString("expDate") );
+				creditCard.setSecurityCode( rs.getString("securityCode") );
+				
+				customer.setCreditCard( creditCard );
 				
 				// Adds customer to List
 				customerList.add(customer);			
