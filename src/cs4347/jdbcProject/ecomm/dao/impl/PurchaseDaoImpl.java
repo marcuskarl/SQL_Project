@@ -20,7 +20,7 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		
 		// Checks that customer ID is null, throws exception is a value is found
 		if (purchase.getId() != null)
-			throw new DAOException("Trying to insert Purchase with NON-NULL ID");
+			throw new DAOException("Trying to insert Purchase with NON-NULL ID.");
 		
 		// Creates PreparedStatement variable
 		PreparedStatement pstmt = null;
