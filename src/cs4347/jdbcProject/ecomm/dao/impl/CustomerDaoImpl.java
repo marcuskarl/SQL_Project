@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import cs4347.jdbcProject.ecomm.dao.AddressDAO;
-import cs4347.jdbcProject.ecomm.dao.CreditCardDAO;
 import cs4347.jdbcProject.ecomm.dao.CustomerDAO;
 import cs4347.jdbcProject.ecomm.entity.Address;
 import cs4347.jdbcProject.ecomm.entity.CreditCard;
@@ -40,7 +38,7 @@ public class CustomerDaoImpl implements CustomerDAO
 		pstmt.setString(3, customer.getGender().toString() );
 		pstmt.setDate(4, customer.getDob() );
 		pstmt.setString(5, customer.getEmail() );
-				
+		
 		// Performs the insert command
 		pstmt.executeUpdate();
 		
