@@ -36,28 +36,39 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		pstmt.setLong(2, purchase.getCustomerID() );
 		pstmt.setDate(3, purchase.getPurchaseDate() );
 		pstmt.setDouble(4, purchase.getPurchaseAmount());
+		
+		try
+		{
+			// Performs the insert command
+			pstmt.executeUpdate();
+			
+			// Prepares string in order to get the id that was just created in the insert operation
+			String getInsertedID = "SELECT LAST_INSERT_ID()";
+			
+			// Places string to PreparedStatement variable as object
+			pstmt = connection.prepareStatement( getInsertedID );
+			
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
+			
+			// Checks for a non null return in the result set
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-		// Performs the insert command
-		pstmt.executeUpdate();
-		
-		// Prepares string in order to get the id that was just created in the insert operation
-		String getInsertedID = "SELECT LAST_INSERT_ID()";
-		
-		// Places string to PreparedStatement variable as object
-		pstmt = connection.prepareStatement( getInsertedID );
-		
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Checks for a non null return in the result set
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
-			
-			purchase.setId( rs.getLong("id") ); // Sets the purchase ID to what was created in the database
+				purchase.setId( rs.getLong("id") ); // Sets the purchase ID to what was created in the database
+			}
+				
+			// Returns the purchase with the updated id
+			return purchase;
 		}
-			
-		// Returns the purchase with the updated id
-		return purchase;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -76,26 +87,37 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		
 		pstmt.setLong(1, id );
 		
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Checks for a non null return in the result set
-		if ( rs.next() ) {
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
 			
-			// Initializes Purchase variable
-			purchase = new Purchase();
+			// Checks for a non null return in the result set
+			if ( rs.next() ) {
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				// Initializes Purchase variable
+				purchase = new Purchase();
+				
+				// Loads ResultSet returns to purchase fields
+				purchase.setId( rs.getLong("id") );
+				purchase.setCustomerID( rs.getLong("customerID") );
+				purchase.setProductID( rs.getLong("productID") );
+				purchase.setPurchaseDate( rs.getDate("purchaseDate") );
+				purchase.setPurchaseAmount( rs.getDouble("purchaseAmount") );
+			}
 			
-			// Loads ResultSet returns to purchase fields
-			purchase.setId( rs.getLong("id") );
-			purchase.setCustomerID( rs.getLong("customerID") );
-			purchase.setProductID( rs.getLong("productID") );
-			purchase.setPurchaseDate( rs.getDate("purchaseDate") );
-			purchase.setPurchaseAmount( rs.getDouble("purchaseAmount") );
+			// Returns purchase information (or null if not found)
+			return purchase;
 		}
-		
-		// Returns purchase information (or null if not found)
-		return purchase;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -124,10 +146,18 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		pstmt.setDate(3, purchase.getPurchaseDate() );
 		pstmt.setDouble(4, purchase.getPurchaseAmount() );
 		pstmt.setLong(5, purchase.getCustomerID() );
-		
-		pstmt.executeUpdate();
-		
-		return 0;
+		try
+		{
+			return pstmt.executeUpdate();
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -146,10 +176,19 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( deleteStmt );
 		pstmt.setLong(1, id );
+		try
+		{
+			return pstmt.executeUpdate();
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 		
-		pstmt.executeUpdate();
-		
-		return 0;
 	}
 
 	@Override
@@ -167,38 +206,49 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		
 		pstmt.setLong(1, customerID );
 		
-		// Performs query and sends data to ResultSet variable
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Creates a List for returning search results
-		List<Purchase> purchaseList = null;
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Performs query and sends data to ResultSet variable
+			ResultSet rs = pstmt.executeQuery();
 			
-			// If results were found, purchaseList is initialized (otherwise null is returned)
-			purchaseList = new ArrayList<Purchase>();
+			// Creates a List for returning search results
+			List<Purchase> purchaseList = null;
 			
-			do
-			{
-				// Creates new Purchase object for adding to List array
-				Purchase purchase = new Purchase();
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				// Loads ResultSet returns to purchase fields
-				purchase.setId( rs.getLong("id") );
-				purchase.setCustomerID( rs.getLong("customerID") );
-				purchase.setProductID( rs.getLong("productID") );
-				purchase.setPurchaseDate( rs.getDate("purchaseDate") );
-				purchase.setPurchaseAmount( rs.getDouble("purchaseAmount") );
+				// If results were found, purchaseList is initialized (otherwise null is returned)
+				purchaseList = new ArrayList<Purchase>();
 				
-				// Adds Purchase to List
-				purchaseList.add(purchase);		
-			} while ( rs.next() ); // Loops until all results are added to list
+				do
+				{
+					// Creates new Purchase object for adding to List array
+					Purchase purchase = new Purchase();
+					
+					// Loads ResultSet returns to purchase fields
+					purchase.setId( rs.getLong("id") );
+					purchase.setCustomerID( rs.getLong("customerID") );
+					purchase.setProductID( rs.getLong("productID") );
+					purchase.setPurchaseDate( rs.getDate("purchaseDate") );
+					purchase.setPurchaseAmount( rs.getDouble("purchaseAmount") );
+					
+					// Adds Purchase to List
+					purchaseList.add(purchase);		
+				} while ( rs.next() ); // Loops until all results are added to list
+			}
+			
+			// Returns generated List
+			return purchaseList;
 		}
-		
-		// Returns generated List
-		return purchaseList;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -216,38 +266,49 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		
 		pstmt.setLong(1,  productID );
 		
-		// Performs query and sends data to ResultSet variable
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Creates a List for returning search results
-		List<Purchase> purchaseList = null;
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Performs query and sends data to ResultSet variable
+			ResultSet rs = pstmt.executeQuery();
 			
-			// If results were found, productList is initialized (otherwise null is returned)
-			purchaseList = new ArrayList<Purchase>();
+			// Creates a List for returning search results
+			List<Purchase> purchaseList = null;
 			
-			do
-			{
-				// Creates new Purchase object for adding to List array
-				Purchase purchase = new Purchase();
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				// Loads ResultSet returns to purchase fields
-				purchase.setId( rs.getLong("id") );
-				purchase.setCustomerID( rs.getLong("customerID") );
-				purchase.setProductID( rs.getLong("productID") );
-				purchase.setPurchaseDate( rs.getDate("purchaseDate") );
-				purchase.setPurchaseAmount( rs.getDouble("purchaseAmount") );
+				// If results were found, productList is initialized (otherwise null is returned)
+				purchaseList = new ArrayList<Purchase>();
 				
-				// Adds Purchase to List
-				purchaseList.add(purchase);		
-			} while ( rs.next() ); // Loops until all results are added to list
+				do
+				{
+					// Creates new Purchase object for adding to List array
+					Purchase purchase = new Purchase();
+					
+					// Loads ResultSet returns to purchase fields
+					purchase.setId( rs.getLong("id") );
+					purchase.setCustomerID( rs.getLong("customerID") );
+					purchase.setProductID( rs.getLong("productID") );
+					purchase.setPurchaseDate( rs.getDate("purchaseDate") );
+					purchase.setPurchaseAmount( rs.getDouble("purchaseAmount") );
+					
+					// Adds Purchase to List
+					purchaseList.add(purchase);		
+				} while ( rs.next() ); // Loops until all results are added to list
+			}
+			
+			// Returns generated List
+			return purchaseList;
 		}
-		
-		// Returns generated List
-		return purchaseList;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -266,25 +327,36 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		
 		pstmt.setLong(1, customerID );
 		
-		// Performs query and sends data to ResultSet variable
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Creates a purchaseSummary for returning search results
-		PurchaseSummary purchaseSummary = null;
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Performs query and sends data to ResultSet variable
+			ResultSet rs = pstmt.executeQuery();
 			
-			// Initializes variable
-			purchaseSummary = new PurchaseSummary();
+			// Creates a purchaseSummary for returning search results
+			PurchaseSummary purchaseSummary = null;
 			
-			// If results were found, purchaseSummary is initialized (otherwise null is returned)
-			purchaseSummary.minPurchase = rs.getFloat( "MIN(purchaseAmount)" );
-			purchaseSummary.maxPurchase = rs.getFloat( "MAX(purchaseAmount)" );
-			purchaseSummary.avgPurchase = rs.getFloat( "AVG(purchaseAmount)" );
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				// Initializes variable
+				purchaseSummary = new PurchaseSummary();
+				
+				// If results were found, purchaseSummary is initialized (otherwise null is returned)
+				purchaseSummary.minPurchase = rs.getFloat( "MIN(purchaseAmount)" );
+				purchaseSummary.maxPurchase = rs.getFloat( "MAX(purchaseAmount)" );
+				purchaseSummary.avgPurchase = rs.getFloat( "AVG(purchaseAmount)" );
+			}
+			
+			return purchaseSummary;
 		}
-		
-		return purchaseSummary;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 }

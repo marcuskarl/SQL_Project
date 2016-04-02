@@ -74,14 +74,16 @@ public class ProductPersistenceServiceImpl implements ProductPersistenceService
 		
 		ProductDAO productDAO = new ProductDaoImpl();		
 		Connection connection = dataSource.getConnection();
-		
+		int numRowsAffected = 0;
 		// Updates product details
 		try {
 			connection.setAutoCommit(false);
 			
-			productDAO.update(connection, product);
+			numRowsAffected = productDAO.update(connection, product);
 			
 			connection.commit();
+			
+			return numRowsAffected;
 		}
 		catch (Exception ex) {
 			connection.rollback();
@@ -95,8 +97,7 @@ public class ProductPersistenceServiceImpl implements ProductPersistenceService
 				connection.close();
 			}
 		}
-		
-		return 0;
+
 	}
 
 	@Override
@@ -104,14 +105,16 @@ public class ProductPersistenceServiceImpl implements ProductPersistenceService
 		
 		ProductDAO productDAO = new ProductDaoImpl();		
 		Connection connection = dataSource.getConnection();
-		
+		int numRowsAffected = 0;
 		try {
 			connection.setAutoCommit(false);
 			
 			// Performs product delete
-			productDAO.delete(connection, id);
+			numRowsAffected = productDAO.delete(connection, id);
 			
 			connection.commit();
+			
+			return numRowsAffected;
 		}
 		catch (Exception ex) {
 			connection.rollback();
@@ -125,8 +128,7 @@ public class ProductPersistenceServiceImpl implements ProductPersistenceService
 				connection.close();
 			}
 		}
-		
-		return 0;
+
 	}
 
 	@Override
@@ -163,14 +165,19 @@ public class ProductPersistenceServiceImpl implements ProductPersistenceService
 		try {
 			// Calls method to create List of matching entries
 			productList = productDAO.retrieveByCategory(connection, category);
+			
+			// Returns product
+			return productList;
+		}
+		catch(Exception e)
+		{
+			throw e;
 		}
 		finally {
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			}
 		}
-		
-		// Returns product
-		return productList;
+
 	}
 }

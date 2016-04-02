@@ -135,16 +135,16 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 		CreditCardDAO creditCardDAO = new CreditCardDaoImpl();
 		
 		Connection connection = dataSource.getConnection();
-		
+		int numRowsAffected = 0;
 		// Updates customer details, address, and credit card information
 		try {
 			connection.setAutoCommit(false);
 			
-			customerDAO.update(connection, customer);
+			numRowsAffected = customerDAO.update(connection, customer);
 			addressDAO.create(connection, customer.getAddress(), customer.getId());
-			creditCardDAO.create(connection, customer.getCreditCard(), customer.getId());
-			
+			creditCardDAO.create(connection, customer.getCreditCard(), customer.getId());			
 			connection.commit();
+			return numRowsAffected;
 		}
 		catch (Exception ex) {
 			connection.rollback();
@@ -159,7 +159,7 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 			}
 		}
 		
-		return 0;
+	
 	}
 
 	@Override
@@ -167,12 +167,12 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 		
 		CustomerDAO customerDAO = new CustomerDaoImpl();
 		Connection connection = dataSource.getConnection();
-		
+		int numRowsAffected = 0;
 		try {
 			connection.setAutoCommit(false);
 			
 			// Performs delete from customer and cascade deletes to credit card and address
-			customerDAO.delete(connection, id);
+			numRowsAffected = customerDAO.delete(connection, id);
 			
 			connection.commit();
 		}
@@ -189,7 +189,7 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 			}
 		}
 		
-		return 0;
+		return numRowsAffected;
 	}
 
 	@Override
@@ -202,16 +202,20 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 		
 		try {
 			// Calls retrievebyZipCode method and sets customerList to the returns List
-			customerList = customerDAO.retrieveByZipCode(connection, zipCode);
+			customerList = customerDAO.retrieveByZipCode(connection, zipCode);			
+			// Returns list
+			return customerList;
+		}
+		catch(Exception e)
+		{
+			throw e;
 		}
 		finally {
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			}
 		}
-		
-		// Returns list
-		return customerList;
+
 	}
 
 	@Override
@@ -225,14 +229,19 @@ public class CustomerPersistenceServiceImpl implements CustomerPersistenceServic
 		try {
 			// Calls retrievebyDOB method and sets customerList to the returns List
 			customerList = customerDAO.retrieveByDOB(connection, startDate, endDate);
+			
+			// Returns list
+			return customerList;
+		}
+		catch(Exception e)
+		{
+			throw e;
 		}
 		finally {
 			if (connection != null && !connection.isClosed()) {
 				connection.close();
 			}
 		}
-		
-		// Returns list
-		return customerList;
+
 	}
 }

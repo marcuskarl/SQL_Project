@@ -40,26 +40,35 @@ public class CustomerDaoImpl implements CustomerDAO
 		pstmt.setString(5, customer.getEmail() );
 		
 		// Performs the insert command
-		pstmt.executeUpdate();
-		
-		// Prepares string in order to get the id that was just created in the insert operation
-		String getInsertedID = "SELECT LAST_INSERT_ID()";
-		
-		// Places string to PreparedStatement variable as object
-		pstmt = connection.prepareStatement( getInsertedID );
-		
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Checks for a non null return in the result set
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			pstmt.executeUpdate();
 			
-			customer.setId( rs.getLong("id") ); // Sets the customer ID to what was created in the database
+			// Prepares string in order to get the id that was just created in the insert operation
+			String getInsertedID = "SELECT LAST_INSERT_ID()";
+			
+			// Places string to PreparedStatement variable as object
+			pstmt = connection.prepareStatement( getInsertedID );
+			
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
+	
+			// Checks for a non null return in the result set
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				customer.setId( rs.getLong("id") ); // Sets the customer ID to what was created in the database
+			}
+			return customer; //returns the customer with the updated id
 		}
-			
-		// Returns the customer with the updated id
-		return customer;
+		catch(SQLException e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -78,27 +87,38 @@ public class CustomerDaoImpl implements CustomerDAO
 		
 		pstmt.setLong(1, id);
 		
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Checks for a non null return in the result set
-		if ( rs.next() ) {
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
 			
-			// Initializes customer variable
-			customer = new Customer();
+			// Checks for a non null return in the result set
+			if ( rs.next() ) {
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				// Initializes customer variable
+				customer = new Customer();
+				
+				// Loads ResultSet returns to customer fields
+				customer.setId( rs.getLong("id") );
+				customer.setFirstName( rs.getString("firstName") );
+				customer.setLastName( rs.getString("lastName") );
+				customer.setGender( rs.getString("gender").charAt(0) );
+				customer.setDob( rs.getDate("dob") );
+				customer.setEmail( rs.getString("email") );
+			}
 			
-			// Loads ResultSet returns to customer fields
-			customer.setId( rs.getLong("id") );
-			customer.setFirstName( rs.getString("firstName") );
-			customer.setLastName( rs.getString("lastName") );
-			customer.setGender( rs.getString("gender").charAt(0) );
-			customer.setDob( rs.getDate("dob") );
-			customer.setEmail( rs.getString("email") );
+			// Returns customer information
+			return customer;
 		}
-		
-		// Returns customer information
-		return customer;
+		catch(SQLException e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -129,10 +149,19 @@ public class CustomerDaoImpl implements CustomerDAO
 		pstmt.setDate(4, customer.getDob() );
 		pstmt.setString(5, customer.getEmail() );
 		pstmt.setLong(6, customer.getId() );
-		
-		pstmt.executeUpdate();		
-		
-		return 0;
+		try
+		{
+			return pstmt.executeUpdate();		
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
+
 	}
 
 	@Override
@@ -152,10 +181,19 @@ public class CustomerDaoImpl implements CustomerDAO
 		pstmt = connection.prepareStatement( deleteStmt );
 		
 		pstmt.setLong(1, id);
-		
-		pstmt.executeUpdate();		
-		
-		return 0;
+		try
+		{
+			return pstmt.executeUpdate();	
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
+
 	}
 
 	@Override
@@ -178,56 +216,68 @@ public class CustomerDaoImpl implements CustomerDAO
 		
 		pstmt.setString(1, zipCode);
 		
-		// Performs query and sends data to ResultSet variable
-		ResultSet rs = pstmt.executeQuery();
 		
-		// Creates a List for returning search results
-		List<Customer> customerList = null;
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Performs query and sends data to ResultSet variable
+			ResultSet rs = pstmt.executeQuery();
 			
-			// If results were found, customerList is initialized (otherwise null is returned)
-			customerList = new ArrayList<Customer>();
-						
-			do
-			{
-				// Creates new Customer object for adding to List array
-				Customer customer = new Customer();
-				Address address = new Address();
-				CreditCard creditCard = new CreditCard();
+			// Creates a List for returning search results
+			List<Customer> customerList = null;
+			
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				// Updates values of customer from Result Set
-				customer.setId( rs.getLong("id") );
-				customer.setFirstName( rs.getString("firstName") );
-				customer.setLastName( rs.getString("lastName") );
-				customer.setGender( rs.getString("gender").charAt(0) );
-				customer.setDob( rs.getDate("dob") );
-				customer.setEmail( rs.getString("email") );
-				
-				address.setAddress1( rs.getString("address1") );
-				address.setAddress2( rs.getString("address2") );
-				address.setCity( rs.getString("city") );
-				address.setState( rs.getString("state") );
-				address.setZipcode( rs.getString("zipcode") );
-				
-				customer.setAddress( address );
-				
-				creditCard.setName( rs.getString("name") );
-				creditCard.setCcNumber( rs.getString("ccNumber") );
-				creditCard.setExpDate( rs.getString("expDate") );
-				creditCard.setSecurityCode( rs.getString("securityCode") );
-				
-				customer.setCreditCard( creditCard );
-				
-				// Adds customer to List
-				customerList.add(customer);			
-			} while ( rs.next() ); // Loops until all results are added to list
+				// If results were found, customerList is initialized (otherwise null is returned)
+				customerList = new ArrayList<Customer>();
+							
+				do
+				{
+					// Creates new Customer object for adding to List array
+					Customer customer = new Customer();
+					Address address = new Address();
+					CreditCard creditCard = new CreditCard();
+					
+					// Updates values of customer from Result Set
+					customer.setId( rs.getLong("id") );
+					customer.setFirstName( rs.getString("firstName") );
+					customer.setLastName( rs.getString("lastName") );
+					customer.setGender( rs.getString("gender").charAt(0) );
+					customer.setDob( rs.getDate("dob") );
+					customer.setEmail( rs.getString("email") );
+					
+					address.setAddress1( rs.getString("address1") );
+					address.setAddress2( rs.getString("address2") );
+					address.setCity( rs.getString("city") );
+					address.setState( rs.getString("state") );
+					address.setZipcode( rs.getString("zipcode") );
+					
+					customer.setAddress( address );
+					
+					creditCard.setName( rs.getString("name") );
+					creditCard.setCcNumber( rs.getString("ccNumber") );
+					creditCard.setExpDate( rs.getString("expDate") );
+					creditCard.setSecurityCode( rs.getString("securityCode") );
+					
+					customer.setCreditCard( creditCard );
+					
+					// Adds customer to List
+					customerList.add(customer);			
+				} while ( rs.next() ); // Loops until all results are added to list
+			}
+			
+			// Returns generated List
+			return customerList;
 		}
-		
-		// Returns generated List
-		return customerList;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -249,55 +299,66 @@ public class CustomerDaoImpl implements CustomerDAO
 		pstmt.setDate(2, endDate);		
 		
 		// Performs query and sends data to ResultSet variable
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Creates a List for returning search results
-		List<Customer> customerList = null;
-		
-		// Checks if results were found
-		if ( rs.next() ) {
+		try
+		{
+			ResultSet rs = pstmt.executeQuery();
 			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+			// Creates a List for returning search results
+			List<Customer> customerList = null;
 			
-			// If results were found, customerList is initializes (otherwise null is returned)
-			customerList = new ArrayList<Customer>();
-						
-			do
-			{
-				// Creates new Customer object for adding to List array
-				Customer customer = new Customer();
-				Address address = new Address();
-				CreditCard creditCard = new CreditCard();
+			// Checks if results were found
+			if ( rs.next() ) {
 				
-				// Updates values of customer from Result Set
-				customer.setId( rs.getLong("id") );
-				customer.setFirstName( rs.getString("firstName") );
-				customer.setLastName( rs.getString("lastName") );
-				customer.setGender( rs.getString("gender").charAt(0) );
-				customer.setDob( rs.getDate("dob") );
-				customer.setEmail( rs.getString("email") );
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				address.setAddress1( rs.getString("address1") );
-				address.setAddress2( rs.getString("address2") );
-				address.setCity( rs.getString("city") );
-				address.setState( rs.getString("state") );
-				address.setZipcode( rs.getString("zipcode") );
-				
-				customer.setAddress( address );
-				
-				creditCard.setName( rs.getString("name") );
-				creditCard.setCcNumber( rs.getString("ccNumber") );
-				creditCard.setExpDate( rs.getString("expDate") );
-				creditCard.setSecurityCode( rs.getString("securityCode") );
-				
-				customer.setCreditCard( creditCard );
-				
-				// Adds customer to List
-				customerList.add(customer);			
-			} while ( rs.next() ); // Loops until all results are added to list
+				// If results were found, customerList is initializes (otherwise null is returned)
+				customerList = new ArrayList<Customer>();
+							
+				do
+				{
+					// Creates new Customer object for adding to List array
+					Customer customer = new Customer();
+					Address address = new Address();
+					CreditCard creditCard = new CreditCard();
+					
+					// Updates values of customer from Result Set
+					customer.setId( rs.getLong("id") );
+					customer.setFirstName( rs.getString("firstName") );
+					customer.setLastName( rs.getString("lastName") );
+					customer.setGender( rs.getString("gender").charAt(0) );
+					customer.setDob( rs.getDate("dob") );
+					customer.setEmail( rs.getString("email") );
+					
+					address.setAddress1( rs.getString("address1") );
+					address.setAddress2( rs.getString("address2") );
+					address.setCity( rs.getString("city") );
+					address.setState( rs.getString("state") );
+					address.setZipcode( rs.getString("zipcode") );
+					
+					customer.setAddress( address );
+					
+					creditCard.setName( rs.getString("name") );
+					creditCard.setCcNumber( rs.getString("ccNumber") );
+					creditCard.setExpDate( rs.getString("expDate") );
+					creditCard.setSecurityCode( rs.getString("securityCode") );
+					
+					customer.setCreditCard( creditCard );
+					
+					// Adds customer to List
+					customerList.add(customer);			
+				} while ( rs.next() ); // Loops until all results are added to list
+			}
+			
+			// Returns generated List
+			return customerList;
 		}
-		
-		// Returns generated List
-		return customerList;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}	
 }

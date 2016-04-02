@@ -36,10 +36,19 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		pstmt.setString(3, creditCard.getExpDate() );
 		pstmt.setString(4, creditCard.getSecurityCode() );
 		pstmt.setLong(5, customerID );
-				
-		pstmt.executeUpdate();
-		
-		return null;
+		try
+		{
+			pstmt.executeUpdate();
+			return null;
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -55,26 +64,37 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		pstmt = connection.prepareStatement( retrieveCC );
 		
 		pstmt.setLong(1, customerID );
-				
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
 		
-		// Creates CreditCard object to pass information back in method return
-		CreditCard creditCard = new CreditCard();
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
 			
-			// Loads data into creditCard object
-			creditCard.setName( rs.getString("name") );
-			creditCard.setCcNumber( rs.getString("ccNumber") );
-			creditCard.setExpDate( rs.getString("expDate") );
-			creditCard.setSecurityCode( rs.getString("securityCode") );			
+			// Creates CreditCard object to pass information back in method return
+			CreditCard creditCard = new CreditCard();
+			
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				// Loads data into creditCard object
+				creditCard.setName( rs.getString("name") );
+				creditCard.setCcNumber( rs.getString("ccNumber") );
+				creditCard.setExpDate( rs.getString("expDate") );
+				creditCard.setSecurityCode( rs.getString("securityCode") );			
+			}
+			
+			// Returns CreditCard object
+			return creditCard;
 		}
-		
-		// Returns CreditCard object
-		return creditCard;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 	
 	@Override
@@ -95,8 +115,18 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		pstmt = connection.prepareStatement( updateStmt );
 		
 		pstmt.setLong(1, customerID );
-		
-		pstmt.executeUpdate();		
+		try
+		{
+			pstmt.executeUpdate();
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 }

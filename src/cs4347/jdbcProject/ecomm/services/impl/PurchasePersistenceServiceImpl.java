@@ -76,14 +76,16 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 		
 		PurchaseDAO purchaseDAO = new PurchaseDaoImpl();
 		Connection connection = dataSource.getConnection();
-		
+		int numRowsAffected = 0;
 		// Updates product details
 		try {
 			connection.setAutoCommit(false);
 			
-			purchaseDAO.update(connection, purchase);
+			numRowsAffected = purchaseDAO.update(connection, purchase);
 			
 			connection.commit();
+						
+			return numRowsAffected;
 		}
 		catch (Exception ex) {
 			connection.rollback();
@@ -97,8 +99,7 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 				connection.close();
 			}
 		}
-		
-		return 0;
+
 	}
 
 	@Override
@@ -106,14 +107,16 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 		
 		PurchaseDAO purchaseDAO = new PurchaseDaoImpl();
 		Connection connection = dataSource.getConnection();
-		
+		int numRowsAffected = 0;
 		try {
 			connection.setAutoCommit(false);
 			
 			// Performs product delete
-			purchaseDAO.delete(connection, id);
+			numRowsAffected = purchaseDAO.delete(connection, id);
 			
 			connection.commit();
+			
+			return numRowsAffected;
 		}
 		catch (Exception ex) {
 			connection.rollback();
@@ -127,8 +130,7 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 				connection.close();
 			}
 		}
-		
-		return 0;
+
 	}
 
 	@Override
@@ -142,6 +144,12 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 		try {
 			// Calls method to create List of matching entries
 			purchaseList = purchaseDAO.retrieveForCustomerID(connection, customerID);
+			// Returns product
+			return purchaseList;
+		}
+		catch(Exception e)
+		{
+			throw e;
 		}
 		finally {
 			if (connection != null && !connection.isClosed()) {
@@ -149,8 +157,7 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 			}
 		}
 		
-		// Returns product
-		return purchaseList;
+
 	}
 
 	@Override
@@ -170,6 +177,12 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 		try {
 			// Calls method to create List of matching entries
 			purchaseList = purchaseDAO.retrieveForProductID(connection, productID);
+			// Returns product
+			return purchaseList;
+		}
+		catch(Exception e)
+		{
+			throw e;
 		}
 		finally {
 			if (connection != null && !connection.isClosed()) {
@@ -177,7 +190,6 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 			}
 		}
 		
-		// Returns product
-		return purchaseList;
+
 	}
 }

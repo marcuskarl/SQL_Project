@@ -36,10 +36,20 @@ public class AddressDaoImpl implements AddressDAO
 		pstmt.setString(4, address.getState() );
 		pstmt.setString(5, address.getZipcode() );
 		pstmt.setLong(6, customerID );
-				
-		pstmt.executeUpdate();	
-		
-		return null;
+		try
+		{
+			pstmt.executeUpdate();	
+			return null;
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
+	
 	}
 
 	@Override
@@ -56,25 +66,36 @@ public class AddressDaoImpl implements AddressDAO
 		
 		pstmt.setLong(1, customerID );
 		
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Creates object for holding to pass in method return
-		Address address = new Address();
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
 			
-			address.setAddress1( rs.getString("address1") );
-			address.setAddress2( rs.getString("address2") );
-			address.setCity( rs.getString("city") );
-			address.setState( rs.getString("state") );
-			address.setZipcode( rs.getString("zipcode") );
+			// Creates object for holding to pass in method return
+			Address address = new Address();
+			
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				address.setAddress1( rs.getString("address1") );
+				address.setAddress2( rs.getString("address2") );
+				address.setCity( rs.getString("city") );
+				address.setState( rs.getString("state") );
+				address.setZipcode( rs.getString("zipcode") );
+			}
+			
+			// Returns Address object with customer information
+			return address;	
 		}
-		
-		// Returns Address object with customer information
-		return address;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -96,7 +117,18 @@ public class AddressDaoImpl implements AddressDAO
 		pstmt = connection.prepareStatement( updateStmt );
 		
 		pstmt.setLong(1, customerID );
+		try
+		{
+			pstmt.executeUpdate();	
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 		
-		pstmt.executeUpdate();		
 	}
 }

@@ -35,27 +35,38 @@ public class ProductDaoImpl implements ProductDAO
 		pstmt.setInt(3, product.getProdCategory() );
 		pstmt.setString(4, product.getProdUPC() );
 		
-		// Performs the insert command
-		pstmt.executeUpdate();
-		
-		// Prepares string in order to get the id that was just created in the insert operation
-		String getInsertedID = "SELECT LAST_INSERT_ID()";
-		
-		// Places string to PreparedStatement variable as object
-		pstmt = connection.prepareStatement( getInsertedID );
-		
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Checks for a non null return in the result set
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Performs the insert command
+			pstmt.executeUpdate();
 			
-			product.setId( rs.getLong("id") ); // Sets the product ID to what was created in the database
+			// Prepares string in order to get the id that was just created in the insert operation
+			String getInsertedID = "SELECT LAST_INSERT_ID()";
+			
+			// Places string to PreparedStatement variable as object
+			pstmt = connection.prepareStatement( getInsertedID );
+			
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
+			
+			// Checks for a non null return in the result set
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				product.setId( rs.getLong("id") ); // Sets the product ID to what was created in the database
+			}
+				
+			// Returns the product with the updated id
+			return product;
 		}
-			
-		// Returns the product with the updated id
-		return product;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -74,26 +85,37 @@ public class ProductDaoImpl implements ProductDAO
 		
 		pstmt.setLong(1, id );
 		
-		// Executes the query
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Checks for a non null return in the result set
-		if ( rs.next() ) {
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Executes the query
+			ResultSet rs = pstmt.executeQuery();
 			
-			// Initializes customer variable
-			product = new Product();
+			// Checks for a non null return in the result set
+			if ( rs.next() ) {
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				
+				// Initializes customer variable
+				product = new Product();
+				
+				// Loads ResultSet returns to product fields
+				product.setId( rs.getLong("id") );
+				product.setProdName( rs.getString("prodName") );
+				product.setProdDescription( rs.getString("prodDescription") );
+				product.setProdCategory( rs.getInt("prodCategory") );
+				product.setProdUPC( rs.getString("prodUPC") );			
+			}
 			
-			// Loads ResultSet returns to product fields
-			product.setId( rs.getLong("id") );
-			product.setProdName( rs.getString("prodName") );
-			product.setProdDescription( rs.getString("prodDescription") );
-			product.setProdCategory( rs.getInt("prodCategory") );
-			product.setProdUPC( rs.getString("prodUPC") );			
+			// Returns product information
+			return product;
 		}
-		
-		// Returns product information
-		return product;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -122,10 +144,18 @@ public class ProductDaoImpl implements ProductDAO
 		pstmt.setInt(3, product.getProdCategory() );
 		pstmt.setString(4, product.getProdUPC() );
 		pstmt.setLong(5, product.getId() );
-		
-		pstmt.executeUpdate();				
-		
-		return 0;
+		try
+		{
+			return pstmt.executeUpdate();
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -146,9 +176,19 @@ public class ProductDaoImpl implements ProductDAO
 		
 		pstmt.setLong(1, id );
 		
-		pstmt.executeUpdate();
+		try
+		{
+			return pstmt.executeUpdate();
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 		
-		return 0;
 	}
 
 	@Override
@@ -165,38 +205,50 @@ public class ProductDaoImpl implements ProductDAO
 		
 		pstmt.setInt(1, category );
 		
-		// Performs query and sends data to ResultSet variable
-		ResultSet rs = pstmt.executeQuery();
 		
-		// Creates a List for returning search results
-		List<Product> productList = null;
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		try
+		{
+			// Performs query and sends data to ResultSet variable
+			ResultSet rs = pstmt.executeQuery();
 			
-			// If results were found, productList is initialized (otherwise null is returned)
-			productList = new ArrayList<Product>();
+			// Creates a List for returning search results
+			List<Product> productList = null;
 			
-			do
-			{
-				// Creates new Product object for adding to List array
-				Product product = new Product();
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				// Updates values of product from Result Set
-				product.setId( rs.getLong("id") );
-				product.setProdName( rs.getString("prodName") );
-				product.setProdDescription( rs.getString("prodDescription") );
-				product.setProdCategory( rs.getInt("prodCategory") );
-				product.setProdUPC( rs.getString("prodUPC") );	
+				// If results were found, productList is initialized (otherwise null is returned)
+				productList = new ArrayList<Product>();
 				
-				// Adds customer to List
-				productList.add(product);			
-			} while ( rs.next() ); // Loops until all results are added to list
+				do
+				{
+					// Creates new Product object for adding to List array
+					Product product = new Product();
+					
+					// Updates values of product from Result Set
+					product.setId( rs.getLong("id") );
+					product.setProdName( rs.getString("prodName") );
+					product.setProdDescription( rs.getString("prodDescription") );
+					product.setProdCategory( rs.getInt("prodCategory") );
+					product.setProdUPC( rs.getString("prodUPC") );	
+					
+					// Adds customer to List
+					productList.add(product);			
+				} while ( rs.next() ); // Loops until all results are added to list
+			}
+			
+			// Returns generated List
+			return productList;
 		}
-		
-		// Returns generated List
-		return productList;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 
 	@Override
@@ -213,28 +265,39 @@ public class ProductDaoImpl implements ProductDAO
 		
 		pstmt.setString(1, upc );
 		
-		// Performs query and sends data to ResultSet variable
-		ResultSet rs = pstmt.executeQuery();
-		
-		// Creates a List for returning search results
-		Product product = null;
-		
-		// Checks if results were found
-		if ( rs.next() ) {			
-			rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
-
-			// Creates new Customer object for adding to List array
-			product = new Product();
+		try
+		{
+			// Performs query and sends data to ResultSet variable
+			ResultSet rs = pstmt.executeQuery();
 			
-			// Updates values of product from Result Set
-			product.setId( rs.getLong("id") );
-			product.setProdName( rs.getString("prodName") );
-			product.setProdDescription( rs.getString("prodDescription") );
-			product.setProdCategory( rs.getInt("prodCategory") );
-			product.setProdUPC( rs.getString("prodUPC") );	
+			// Creates a List for returning search results
+			Product product = null;
+			
+			// Checks if results were found
+			if ( rs.next() ) {			
+				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+	
+				// Creates new Customer object for adding to List array
+				product = new Product();
+				
+				// Updates values of product from Result Set
+				product.setId( rs.getLong("id") );
+				product.setProdName( rs.getString("prodName") );
+				product.setProdDescription( rs.getString("prodDescription") );
+				product.setProdCategory( rs.getInt("prodCategory") );
+				product.setProdUPC( rs.getString("prodUPC") );	
+			}
+			
+			// Returns product
+			return product;
 		}
-		
-		// Returns product
-		return product;
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally
+		{
+			pstmt.close();
+		}
 	}
 }
