@@ -21,7 +21,7 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for updating with prepared statement
-		String updateStmt = "UPDATE customer SET"
+		String updateStmt = "UPDATE CreditCard SET"
 				+ " name = ?"
 				+ ", ccNumber = ?"
 				+ ", expDate = ?"
@@ -39,7 +39,7 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		try
 		{
 			pstmt.executeUpdate();
-			return null;
+			return creditCard;
 		}
 		catch(Exception e)
 		{
@@ -72,10 +72,12 @@ public class CreditCardDaoImpl implements CreditCardDAO
 			
 			// Creates CreditCard object to pass information back in method return
 			CreditCard creditCard = new CreditCard();
-			
+			if (!rs.next())
+				return null;
+			rs.previous();
 			// Checks if results were found
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// Loads data into creditCard object
 				creditCard.setName( rs.getString("name") );
@@ -104,11 +106,7 @@ public class CreditCardDaoImpl implements CreditCardDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for updating with prepared statement, where all field are set to null
-		String updateStmt = "UPDATE customer SET"
-				+ " name = null"
-				+ ", ccNumber = null"
-				+ ", expDate = null"
-				+ ", securityCode = null"
+		String updateStmt = "DELETE FROM creditcard"
 				+ " WHERE customerID = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation

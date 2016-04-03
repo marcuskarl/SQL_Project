@@ -19,7 +19,7 @@ public class AddressDaoImpl implements AddressDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for updating with prepared statement
-		String updateStmt = "UPDATE customer SET"
+		String updateStmt = "UPDATE Address SET"
 				+ " address1 = ?"
 				+ ", address2 = ?"
 				+ ", city = ?"
@@ -38,8 +38,8 @@ public class AddressDaoImpl implements AddressDAO
 		pstmt.setLong(6, customerID );
 		try
 		{
-			pstmt.executeUpdate();	
-			return null;
+			int numRowsAffected = pstmt.executeUpdate();	
+			return (numRowsAffected > 0 ? address : null);
 		}
 		catch(Exception e)
 		{
@@ -73,10 +73,12 @@ public class AddressDaoImpl implements AddressDAO
 			
 			// Creates object for holding to pass in method return
 			Address address = new Address();
-			
+			if(!rs.next() ) //checks if result set is empty
+				return null;
 			// Checks if results were found
+			rs.previous();
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				////rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				address.setAddress1( rs.getString("address1") );
 				address.setAddress2( rs.getString("address2") );
@@ -105,12 +107,7 @@ public class AddressDaoImpl implements AddressDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for updating with prepared statement, where all field are set to null
-		String updateStmt = "UPDATE customer SET"
-				+ " address1 = null"
-				+ ", address2 = null"
-				+ ", city = null"
-				+ ", state = null"
-				+ ", zipcode = null"
+		String updateStmt = "DELETE FROM address"
 				+ " WHERE customerID = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation

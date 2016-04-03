@@ -16,6 +16,7 @@ import cs4347.jdbcProject.ecomm.util.DAOException;
 
 public class CustomerDaoImpl implements CustomerDAO
 {
+	public static long index = 1L;
 	@Override
 	public Customer create(Connection connection, Customer customer) throws SQLException, DAOException {
 		
@@ -28,7 +29,7 @@ public class CustomerDaoImpl implements CustomerDAO
 					
 		// Creates string for inserting into prepared statement
 		String insertStmt = "INSERT INTO customer (firstName, lastName, gender, dob, email)"
-				+ " VALUES (?, ? ?, ?, ?)";
+				+ " VALUES (?, ? ,?, ?, ?)";
 		
 		// Sends prepared statement object to the PreparedStatement variable, with the string inserted
 		pstmt = connection.prepareStatement( insertStmt );
@@ -45,7 +46,7 @@ public class CustomerDaoImpl implements CustomerDAO
 			pstmt.executeUpdate();
 			
 			// Prepares string in order to get the id that was just created in the insert operation
-			String getInsertedID = "SELECT LAST_INSERT_ID()";
+			String getInsertedID = "SELECT LAST_INSERT_ID() as id";
 			
 			// Places string to PreparedStatement variable as object
 			pstmt = connection.prepareStatement( getInsertedID );
@@ -55,9 +56,9 @@ public class CustomerDaoImpl implements CustomerDAO
 	
 			// Checks for a non null return in the result set
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+			//	rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				customer.setId( rs.getLong("id") ); // Sets the customer ID to what was created in the database
+				customer.setId( rs.getLong("id")); // Sets the customer ID to what was created in the database
 			}
 			return customer; //returns the customer with the updated id
 		}
@@ -94,7 +95,7 @@ public class CustomerDaoImpl implements CustomerDAO
 			
 			// Checks for a non null return in the result set
 			if ( rs.next() ) {
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// Initializes customer variable
 				customer = new Customer();
@@ -227,7 +228,7 @@ public class CustomerDaoImpl implements CustomerDAO
 			
 			// Checks if results were found
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// If results were found, customerList is initialized (otherwise null is returned)
 				customerList = new ArrayList<Customer>();
@@ -288,7 +289,7 @@ public class CustomerDaoImpl implements CustomerDAO
 		PreparedStatement pstmt = null;
 		
 		// Creates string for use in PreparedStatement
-		String searchByDOB = "SELECT * FROM customer "
+		String searchByDOB = "SELECT * FROM customer,address,creditcard "
 				+ "WHERE dob >= ? "
 				+ "AND dob <= ?";
 		
@@ -309,7 +310,7 @@ public class CustomerDaoImpl implements CustomerDAO
 			// Checks if results were found
 			if ( rs.next() ) {
 				
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// If results were found, customerList is initializes (otherwise null is returned)
 				customerList = new ArrayList<Customer>();

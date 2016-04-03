@@ -13,6 +13,7 @@ import cs4347.jdbcProject.ecomm.util.DAOException;
 
 public class ProductDaoImpl implements ProductDAO
 {
+	public static long index = 1L;
 	@Override
 	public Product create(Connection connection, Product product) throws SQLException, DAOException {
 		
@@ -41,7 +42,7 @@ public class ProductDaoImpl implements ProductDAO
 			pstmt.executeUpdate();
 			
 			// Prepares string in order to get the id that was just created in the insert operation
-			String getInsertedID = "SELECT LAST_INSERT_ID()";
+			String getInsertedID = "SELECT LAST_INSERT_ID() as id";
 			
 			// Places string to PreparedStatement variable as object
 			pstmt = connection.prepareStatement( getInsertedID );
@@ -51,9 +52,9 @@ public class ProductDaoImpl implements ProductDAO
 			
 			// Checks for a non null return in the result set
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+			//	//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				product.setId( rs.getLong("id") ); // Sets the product ID to what was created in the database
+				product.setId(rs.getLong("id")); // Sets the product ID to what was created in the database
 			}
 				
 			// Returns the product with the updated id
@@ -92,7 +93,7 @@ public class ProductDaoImpl implements ProductDAO
 			
 			// Checks for a non null return in the result set
 			if ( rs.next() ) {
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// Initializes customer variable
 				product = new Product();
@@ -129,7 +130,7 @@ public class ProductDaoImpl implements ProductDAO
 		PreparedStatement pstmt = null;
 					
 		// Creates string for updating with prepared statement
-		String updateStmt = "UPDATE customer SET "
+		String updateStmt = "UPDATE product SET "
 				+ "prodName = ?"
 				+ ", prodDescription = ?"
 				+ ", prodCategory = ?"
@@ -167,17 +168,23 @@ public class ProductDaoImpl implements ProductDAO
 		
 		// Creates PreparedStatement variable
 		PreparedStatement pstmt = null;
-					
-		// Creates string for updating with prepared statement
-		String deleteStmt = "DELETE FROM product WHERE id = ?";
+			
+		
+		// Creates string for deleting from purchase with prepared statement
+		String deleteStmt = "DELETE FROM purchase WHERE productid = ?";
 		
 		// Inserts string into PreparedStatement and then performs the operation
 		pstmt = connection.prepareStatement( deleteStmt );
-		
 		pstmt.setLong(1, id );
 		
 		try
 		{
+			pstmt.executeUpdate();
+			String deleteStmt2 = "DELETE FROM product WHERE id = ?";
+			
+			// Inserts string into PreparedStatement and then performs the operation
+			pstmt = connection.prepareStatement( deleteStmt2 );
+			pstmt.setLong(1, id );
 			return pstmt.executeUpdate();
 		}
 		catch(Exception e)
@@ -216,7 +223,7 @@ public class ProductDaoImpl implements ProductDAO
 			
 			// Checks if results were found
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// If results were found, productList is initialized (otherwise null is returned)
 				productList = new ArrayList<Product>();
@@ -275,7 +282,7 @@ public class ProductDaoImpl implements ProductDAO
 			
 			// Checks if results were found
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+				//rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 	
 				// Creates new Customer object for adding to List array
 				product = new Product();

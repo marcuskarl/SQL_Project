@@ -14,7 +14,6 @@ import cs4347.jdbcProject.ecomm.util.DAOException;
 
 public class PurchaseDaoImpl implements PurchaseDAO
 {
-
 	@Override
 	public Purchase create(Connection connection, Purchase purchase) throws SQLException, DAOException {
 		
@@ -43,7 +42,7 @@ public class PurchaseDaoImpl implements PurchaseDAO
 			pstmt.executeUpdate();
 			
 			// Prepares string in order to get the id that was just created in the insert operation
-			String getInsertedID = "SELECT LAST_INSERT_ID()";
+			String getInsertedID = "SELECT LAST_INSERT_ID() as id";
 			
 			// Places string to PreparedStatement variable as object
 			pstmt = connection.prepareStatement( getInsertedID );
@@ -53,9 +52,9 @@ public class PurchaseDaoImpl implements PurchaseDAO
 			
 			// Checks for a non null return in the result set
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+//				////rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
-				purchase.setId( rs.getLong("id") ); // Sets the purchase ID to what was created in the database
+				purchase.setId(rs.getLong("id")); // Sets the purchase ID to what was created in the database
 			}
 				
 			// Returns the purchase with the updated id
@@ -94,7 +93,7 @@ public class PurchaseDaoImpl implements PurchaseDAO
 			
 			// Checks for a non null return in the result set
 			if ( rs.next() ) {
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+		//		////rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// Initializes Purchase variable
 				purchase = new Purchase();
@@ -129,7 +128,7 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		
 		// Creates PreparedStatement variable
 		PreparedStatement pstmt = null;
-					
+		System.out.println(purchase.getPurchaseAmount());
 		// Creates string for updating with prepared statement
 		String updateStmt = "UPDATE purchase SET"
 				+ " customerID = ?"
@@ -145,7 +144,7 @@ public class PurchaseDaoImpl implements PurchaseDAO
 		pstmt.setLong(2, purchase.getProductID() );
 		pstmt.setDate(3, purchase.getPurchaseDate() );
 		pstmt.setDouble(4, purchase.getPurchaseAmount() );
-		pstmt.setLong(5, purchase.getCustomerID() );
+		pstmt.setLong(5, purchase.getId() );
 		try
 		{
 			return pstmt.executeUpdate();
@@ -216,7 +215,7 @@ public class PurchaseDaoImpl implements PurchaseDAO
 			
 			// Checks if results were found
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+	//			////rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// If results were found, purchaseList is initialized (otherwise null is returned)
 				purchaseList = new ArrayList<Purchase>();
@@ -272,14 +271,10 @@ public class PurchaseDaoImpl implements PurchaseDAO
 			ResultSet rs = pstmt.executeQuery();
 			
 			// Creates a List for returning search results
-			List<Purchase> purchaseList = null;
+			List<Purchase> purchaseList = new ArrayList<Purchase>();
 			
 			// Checks if results were found
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
-				
-				// If results were found, productList is initialized (otherwise null is returned)
-				purchaseList = new ArrayList<Purchase>();
 				
 				do
 				{
@@ -337,7 +332,7 @@ public class PurchaseDaoImpl implements PurchaseDAO
 			
 			// Checks if results were found
 			if ( rs.next() ) {			
-				rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
+//				////rs.previous(); // Moves pointer back to first entry (from rs.next() in if statement check)
 				
 				// Initializes variable
 				purchaseSummary = new PurchaseSummary();
