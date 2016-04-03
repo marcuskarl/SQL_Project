@@ -7,7 +7,6 @@ import javax.sql.DataSource;
 
 import cs4347.jdbcProject.ecomm.dao.PurchaseDAO;
 import cs4347.jdbcProject.ecomm.dao.impl.PurchaseDaoImpl;
-import cs4347.jdbcProject.ecomm.entity.Product;
 import cs4347.jdbcProject.ecomm.entity.Purchase;
 import cs4347.jdbcProject.ecomm.services.PurchasePersistenceService;
 import cs4347.jdbcProject.ecomm.services.PurchaseSummary;
@@ -162,8 +161,27 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 
 	@Override
 	public PurchaseSummary retrievePurchaseSummary(Long customerID) throws SQLException, DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		
+		PurchaseDAO purchaseDAO = new PurchaseDaoImpl();
+		Connection connection = dataSource.getConnection();
+		
+		PurchaseSummary purchaseSummary = new PurchaseSummary();
+		
+		try {
+			// Calls method to create List of matching entries
+			purchaseSummary = purchaseDAO.retrievePurchaseSummary(connection, customerID);
+			// Returns product
+			return purchaseSummary;
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		finally {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+			}
+		}
 	}
 
 	@Override
@@ -189,7 +207,5 @@ public class PurchasePersistenceServiceImpl implements PurchasePersistenceServic
 				connection.close();
 			}
 		}
-		
-
 	}
 }
